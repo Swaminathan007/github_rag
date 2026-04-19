@@ -3,6 +3,7 @@ import json
 from config import Config
 import os
 import subprocess
+import shutil
 class GithubUtils:
     def check_if_repo_exists(owner:str,reponame:str) -> bool:
         try:
@@ -60,7 +61,8 @@ class GithubUtils:
         except Exception as e:
             print(e)
             return ""
-    
+
+    #Repo cloning
     def _clone_repo(repo_url: str) -> str:
         try:
             owner, reponame = GithubUtils.get_owner_and_repo(repo_url)
@@ -77,5 +79,19 @@ class GithubUtils:
         except Exception as e:
             print(e)
             return ""
+    
+    def _delete_repo(repo_url: str) -> bool:
+        try:
+            owner, reponame = GithubUtils.get_owner_and_repo(repo_url)
+            if owner == "" or reponame == "" or not GithubUtils.check_if_repo_exists(owner, reponame):
+                return False
+            repo_path = f"{Config.REPO_BASE}/{reponame}"
+            if os.path.exists(repo_path):
+                shutil.rmtree(repo_path)
+                return True
+            return False
+        except Exception as e:
+            print(e)
+            return False
 
     

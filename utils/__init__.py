@@ -1,3 +1,4 @@
 from .httpconnection import HttpConnection
 from .github_utils import GithubUtils
-__all__ = ["HttpConnection","GithubUtils"]
+from .llm_utils import LLMUtils
+__all__ = ["HttpConnection","GithubUtils","LLMUtils"]

@@ -1,16 +1,16 @@
 from langchain_groq import ChatGroq
 from langchain_ollama import OllamaEmbeddings
-from .base import BaseModel
 from config import Config
-from qdrantutils import QdrantHandler
-
+from .base import BaseModel
 
 class GroqHandler(BaseModel):
+    _provider_name = "groq"
     def __init__(self):
-        super().__init__(Config.GROQ_MODEL,QdrantHandler(Config.QDRANT_URL,Config.QDRANT_API_KEY))
-        self.embedding_model_name = Config.OLLAMA_EMBEDDING_MODEL
+        super().__init__()
+        self.model = self.redis_client.get("groq_model")
+        self.embedding_model_name = self.redis_client.get("groq_embedding_model")
         self.embedding_model = self.get_embedding_model()
-        self.api_key = Config.GROQ_API_KEY
+        self.api_key = self.redis_client.get("groq_api_key")
         self.llm = self.get_llm()
     
     def get_llm(self):
@@ -30,3 +30,7 @@ class GroqHandler(BaseModel):
         except Exception as e:
             print(e)
             return False
+    
+    @classmethod
+    def get_provider_name(cls):
+        return cls._provider_name

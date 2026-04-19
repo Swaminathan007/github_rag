@@ -1,22 +1,17 @@
 from abc import ABC, abstractmethod
 from qdrantutils import QdrantHandler
+from redis_utils import RedisClient
+from config import Config
 
 class BaseModel(ABC):
-    def __init__(self, model_name: str,vector_db:QdrantHandler):
-        self.model = model_name
+    def __init__(self):
+        self.model = None
         self.embedding_model_name = None
         self.embedding_model = None
         self.llm = None
-        self.vector_db = vector_db
+        self.vector_db = QdrantHandler(Config.QDRANT_URL,Config.QDRANT_API_KEY)
         self.context = None
-        # self.base_context = (
-        #     "You are a strict repository analyzer.\n"
-        #     "You ONLY answer questions based on the provided repository context.\n",
-        #     "You should know ins and outs of the repo and have the static analysis of the repo",
-        #     "You DO NOT use any external knowledge.\n"
-        #     "If the answer is not present in the context, say:\n"
-        #     "'Not found in the repository.'"
-        # )
+        self.redis_client = RedisClient.get_redis_client()
 
     # -------- ABSTRACT METHODS --------
     @abstractmethod
@@ -30,7 +25,9 @@ class BaseModel(ABC):
     @abstractmethod
     def check_health(self):
         pass
-
+    @abstractmethod
+    def get_provider_name(self):
+        pass
     # -------- EMBEDDINGS --------
     def generate_embeddings(self, texts: str | list[str]) -> list[float] | list[list[float]]:
         """

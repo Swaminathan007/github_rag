@@ -3,15 +3,17 @@ from langchain_ollama import ChatOllama, OllamaEmbeddings
 from .base import BaseModel
 from config import Config
 from utils import HttpConnection
-from qdrantutils import QdrantHandler
 
 class OllamaHandler(BaseModel):
+    _provider_name = "ollama"
     def __init__(self):
-        super().__init__(Config.OLLAMA_MODEL,QdrantHandler(Config.QDRANT_URL,Config.QDRANT_API_KEY))
-        self.base_url = Config.OLLAMA_BASE_URL
-        self.embedding_model_name = Config.OLLAMA_EMBEDDING_MODEL
+        super().__init__()
+        self.model = self.redis_client.get("ollama_model")
+        self.base_url = self.redis_client.get("ollama_base_url")
+        self.embedding_model_name = self.redis_client.get("ollama_embedding_model")
         self.embedding_model = self.get_embedding_model()
         self.llm = self.get_llm()
+
     def get_llm(self):
         if self.llm is None:
             self.llm = ChatOllama(model=self.model, base_url=self.base_url, temperature=0)
@@ -29,3 +31,7 @@ class OllamaHandler(BaseModel):
         except Exception as e:
             print(e)
             return False
+    
+    @classmethod
+    def get_provider_name(cls):
+        return cls._provider_name

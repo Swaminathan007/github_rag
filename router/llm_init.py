@@ -1,3 +1,4 @@
-from llm import LLMUtils
+from utils import LLMUtils
 
-llm_model = LLMUtils.get_llm()
+def get_llm():
+    return LLMUtils.get_llm()

@@ -37,7 +37,9 @@ class QdrantHandler:
             return False
     def get_all_collections(self,limit:int=10,offset:int=0) -> List[str]:
         try:
-            return [collection.name for collection in self.client.get_collections(limit=limit,offset=offset).collections]
+            response = self.client.get_collections()
+            collections = response.collections[offset:offset+limit]
+            return [collection.name for collection in collections]
         except Exception as e:
             print(e)
             return []
