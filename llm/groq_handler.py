@@ -1,6 +1,5 @@
 from langchain_groq import ChatGroq
 from langchain_ollama import OllamaEmbeddings
-from config import Config
 from .base import BaseModel
 
 class GroqHandler(BaseModel):

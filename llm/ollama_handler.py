@@ -1,7 +1,5 @@
-# llm/ollama_handler.py
 from langchain_ollama import ChatOllama, OllamaEmbeddings
 from .base import BaseModel
-from config import Config
 from utils import HttpConnection
 
 class OllamaHandler(BaseModel):

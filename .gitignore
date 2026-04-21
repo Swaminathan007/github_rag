@@ -14,3 +14,7 @@ wheels/
 
 #Ruff cache
 .ruff_cache/
+
+
+#node modules
+node_modules/
