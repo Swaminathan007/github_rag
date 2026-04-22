@@ -152,6 +152,7 @@ class ReactSSR:
         entry_src = f"""
 import React from 'react';
 import {{ createRoot }} from 'react-dom/client';
+import {{ Theme }} from '@radix-ui/themes';
 import Component from '{component_path}';
 import '@radix-ui/themes/styles.css';
 
@@ -159,7 +160,13 @@ const props = {props_json};
 const container = document.getElementById('__py_ssr_root__');
 if (container) {{
     const root = createRoot(container);
-    root.render(React.createElement(Component, props));
+    root.render(
+        React.createElement(
+            Theme,
+            null,
+            React.createElement(Component, props)
+        )
+    );
 }}
 """
         with tempfile.NamedTemporaryFile(
