@@ -157,13 +157,15 @@ import Component from '{component_path}';
 import '@radix-ui/themes/styles.css';
 
 const props = {props_json};
+
+const savedTheme = localStorage.getItem("theme") || "light";
 const container = document.getElementById('__py_ssr_root__');
 if (container) {{
     const root = createRoot(container);
     root.render(
         React.createElement(
             Theme,
-            null,
+            {{ appearance: savedTheme }},
             React.createElement(Component, props)
         )
     );

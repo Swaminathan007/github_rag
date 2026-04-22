@@ -12,18 +12,8 @@ import {
 import { useEffect, useState } from "react";
 
 export default function Home() {
-  const [repos, setRepos] = useState([]);
   const [repoUrl, setRepoUrl] = useState("");
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    fetch("/api/v1/repo/get_all_repos")
-      .then((res) => res.json())
-      .then((data) => {
-        setRepos(data.collection_list || []);
-      })
-      .catch((err) => console.log(err));
-  }, []);
 
   const handleSubmit = async () => {
     if (!repoUrl) return;
@@ -41,12 +31,8 @@ export default function Home() {
       const data = await res.json();
       console.log(data);
 
-      // refresh repo list
-      const updated = await fetch("/api/v1/repo/get_all_repos");
-      const updatedData = await updated.json();
-      setRepos(updatedData.collection_list || []);
-
       setRepoUrl("");
+      window.location.href = `/chat`;
     } catch (err) {
       console.log(err);
     } finally {
@@ -102,27 +88,6 @@ export default function Home() {
           >
             {loading ? "Adding..." : "Add Repository"}
           </Button>
-
-          {/* Repo List */}
-          <Flex direction="column" gap="2">
-            <Text size="2" weight="medium">
-              Your Repositories
-            </Text>
-
-            <Flex wrap="wrap" gap="2">
-              {repos.length === 0 && (
-                <Text size="1" color="gray">
-                  No repositories added yet
-                </Text>
-              )}
-
-              {repos.map((repo, index) => (
-                <Badge key={index} variant="soft">
-                  {repo}
-                </Badge>
-              ))}
-            </Flex>
-          </Flex>
 
           {/* Dialog */}
           <Dialog.Root>

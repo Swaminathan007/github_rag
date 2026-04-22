@@ -1,6 +1,6 @@
 from fastapi import APIRouter,Request
 from .llm_init import get_llm
-from models import Query,Response,RepoModel,RepoCollectionModel
+from models import Query,Response,RepoModel,RepoCollectionModel,QueryResponse
 from repoutils import RepoUtils
 from utils import GithubUtils
 repo_router = APIRouter(prefix="/repo")
@@ -25,9 +25,9 @@ async def add_repo(repo: RepoModel):
     #Check for valid repo
     owner,reponame = GithubUtils.get_owner_and_repo(repo.repo_url)
     if owner == "" or reponame == "":
-        return Response(response="Invalid repository URL")
+        return Response(response="Invalid repository URL",repo_name="")
     if not GithubUtils.check_if_repo_exists(owner, reponame):
-        return Response(response="Repository does not exist")
+        return Response(response="Repository does not exist",repo_name="")
     
     #Clone repo and get content
     repo_content = GithubUtils.get_repo_content(repo.repo_url)
@@ -45,7 +45,7 @@ async def add_repo(repo: RepoModel):
     #Store repo data points into collection
     llm_model.store_repo_data(collection_name, repo_data)
 
-    return Response(response="Repository added successfully")
+    return Response(response="Repository added successfully",repo_name=collection_name)
     
     
 
@@ -53,7 +53,7 @@ async def add_repo(repo: RepoModel):
 async def query_from_repo(reponame: str, query: Query):
     llm_model = get_llm()
     if(not llm_model.vector_db.collection_exists(reponame)):
-        return Response(response="Repository does not exist,please add repo")
+        return QueryResponse(response="Repository does not exist,please add repo")
     
     #Get query string
     query_string = query.query
@@ -70,4 +70,4 @@ async def query_from_repo(reponame: str, query: Query):
     
     #Generate response
     llm_response = llm_model.generate_response(query_string)
-    return Response(response=llm_response)
+    return QueryResponse(response=llm_response)
