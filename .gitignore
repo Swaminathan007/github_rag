@@ -18,3 +18,7 @@ wheels/
 
 #node modules
 node_modules/
+
+#Cache
+.flowbite-react
+.vscode
