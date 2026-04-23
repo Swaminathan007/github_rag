@@ -53,3 +53,9 @@ class QdrantHandler:
             self.client.upload_points(collection_name=collection_name,points=points,batch_size=batch_size,parallel=parallel)
         except Exception as e:
             raise RuntimeError("Error uploading collection") from e
+    
+    def delete_collection(self,collection_name: str):
+        try:
+            self.client.delete_collection(collection_name=collection_name)
+        except Exception as e:
+            raise RuntimeError("Error deleting collection") from e

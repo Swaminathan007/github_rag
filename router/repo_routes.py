@@ -71,3 +71,11 @@ async def query_from_repo(reponame: str, query: Query):
     #Generate response
     llm_response = llm_model.generate_response(query_string)
     return QueryResponse(response=llm_response)
+
+@repo_router.delete("/delete/{repo}")
+async def delete_repo(repo: str):
+    llm_model = get_llm()
+    if(not llm_model.vector_db.collection_exists(repo)):
+        return Response(response=f"{repo} does not exist",repo_name=repo)
+    llm_model.vector_db.delete_collection(repo)
+    return Response(response=f"{repo} deleted successfully",repo_name=repo)

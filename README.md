@@ -44,6 +44,19 @@ GitHub RAG lets you point at any public GitHub repository and start asking quest
 
 ---
 
+## 📸 Screenshots
+
+### Home Page
+![Home Page](images/homepage.png)
+
+### Repository Page
+![Repository Page](images/repopage.png)
+
+### Chat Page
+![Chat Page](images/chatpage.png)
+
+---
+
 ## 🛠️ Tech Stack
 
 | Layer | Technology |

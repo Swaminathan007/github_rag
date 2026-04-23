@@ -1,30 +1,27 @@
+import { useState } from "react";
 import {
   Flex,
-  Text,
-  Button,
-  Card,
-  Dialog,
-  TextField,
+  Box,
   Heading,
-  Separator,
-  Badge
+  Text,
+  TextField,
+  Button,
+  Spinner,
+  Card
 } from "@radix-ui/themes";
-import { useEffect, useState } from "react";
 
 export default function Home() {
   const [repoUrl, setRepoUrl] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
-    if (!repoUrl) return;
+    if (!repoUrl.trim()) return;
 
     setLoading(true);
     try {
       const res = await fetch("/api/v1/repo/add", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ repo_url: repoUrl }),
       });
 
@@ -32,7 +29,7 @@ export default function Home() {
       console.log(data);
 
       setRepoUrl("");
-      window.location.href = `/chat`;
+      window.location.href = "/repos";
     } catch (err) {
       console.log(err);
     } finally {
@@ -44,71 +41,44 @@ export default function Home() {
     <Flex
       align="center"
       justify="center"
-      style={{
-        minHeight: "100vh",
-        background: "linear-gradient(to bottom right, #0f172a, #1e293b)",
-      }}
+      style={{ height: "100vh", padding: "16px" }}
     >
-      <Card
-        size="4"
-        style={{
-          width: "420px",
-          padding: "28px",
-          borderRadius: "16px",
-        }}
-      >
+      <Card style={{ width: 420 }}>
         <Flex direction="column" gap="4">
-          {/* Header */}
-          <Heading align="center" size="6">
-            GitHub RAG
-          </Heading>
-          <Text align="center" color="gray">
-            Get insights from your repositories
-          </Text>
+          <Box>
+            <Heading size="5">GitHub Insights</Heading>
+            <Text color="gray" size="2">
+              Chat with any repository
+            </Text>
+          </Box>
 
-          <Separator size="4" />
-
-          {/* Input */}
           <Flex direction="column" gap="2">
-            <Text size="2" weight="medium">
+            <Text size="1" weight="bold">
               Repository URL
             </Text>
             <TextField.Root
               placeholder="https://github.com/user/repo"
               value={repoUrl}
               onChange={(e) => setRepoUrl(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSubmit();
+              }}
             />
           </Flex>
 
-          {/* Submit */}
           <Button
-            size="3"
             onClick={handleSubmit}
-            disabled={loading}
+            disabled={loading || !repoUrl.trim()}
           >
-            {loading ? "Adding..." : "Add Repository"}
-          </Button>
-
-          {/* Dialog */}
-          <Dialog.Root>
-            <Dialog.Trigger>
-              <Button variant="soft">What is this?</Button>
-            </Dialog.Trigger>
-
-            <Dialog.Content style={{ maxWidth: 400 }}>
-              <Dialog.Title>About</Dialog.Title>
-              <Dialog.Description>
-                This tool lets you add GitHub repositories and generate insights
-                using RAG (Retrieval-Augmented Generation).
-              </Dialog.Description>
-
-              <Flex gap="3" mt="4" justify="end">
-                <Dialog.Close>
-                  <Button>Got it</Button>
-                </Dialog.Close>
+            {loading ? (
+              <Flex align="center" gap="2">
+                <Spinner size="1" />
+                Adding...
               </Flex>
-            </Dialog.Content>
-          </Dialog.Root>
+            ) : (
+              "Add Repository"
+            )}
+          </Button>
         </Flex>
       </Card>
     </Flex>
