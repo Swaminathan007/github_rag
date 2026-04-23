@@ -1,6 +1,6 @@
 from .httpconnection import HttpConnection
 import json
-from config import Config
+from config import get_config
 import os
 import subprocess
 import shutil
@@ -94,13 +94,13 @@ class GithubUtils:
                 or not GithubUtils.check_if_repo_exists(owner, reponame)
             ):
                 return ""
-            repo_path = f"{Config.REPO_BASE}/{reponame}"
+            repo_path = f"{get_config().repo_base}/{reponame}"
             if os.path.exists(repo_path):
                 cls.__logger.info("Repo already exists, pulling latest changes....")
                 subprocess.run(["git", "pull"], cwd=repo_path, check=True)
                 return repo_path
             cls.__logger.info("Cloning repo for the first time....")
-            subprocess.run(["git", "clone", repo_url], cwd=Config.REPO_BASE, check=True)
+            subprocess.run(["git", "clone", repo_url], cwd=get_config().repo_base, check=True)
             return repo_path
         except Exception as e:
             cls.__logger.error(e)
@@ -116,7 +116,7 @@ class GithubUtils:
                 or not GithubUtils.check_if_repo_exists(owner, reponame)
             ):
                 return False
-            repo_path = f"{Config.REPO_BASE}/{reponame}"
+            repo_path = f"{get_config().repo_base}/{reponame}"
             if os.path.exists(repo_path):
                 shutil.rmtree(repo_path)
                 return True

@@ -7,12 +7,14 @@ import {
   TextField,
   Button,
   Spinner,
-  Card
+  Card,
+  Callout
 } from "@radix-ui/themes";
 
 export default function Home() {
   const [repoUrl, setRepoUrl] = useState("");
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(null);
 
   const handleSubmit = async () => {
     if (!repoUrl.trim()) return;
@@ -26,9 +28,12 @@ export default function Home() {
       });
 
       const data = await res.json();
-      console.log(data);
-
+      
       setRepoUrl("");
+      if(data.code != 201){
+        setMessage(data.response);
+        return;
+      }
       window.location.href = "/repos";
     } catch (err) {
       console.log(err);
@@ -45,6 +50,11 @@ export default function Home() {
     >
       <Card style={{ width: 420 }}>
         <Flex direction="column" gap="4">
+         {message && (
+          <Callout.Root color="gray">
+            <Callout.Text>{message}</Callout.Text>
+          </Callout.Root>
+         )}
           <Box>
             <Heading size="5">GitHub Insights</Heading>
             <Text color="gray" size="2">

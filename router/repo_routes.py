@@ -26,14 +26,14 @@ async def add_repo(repo: RepoModel):
     #Check for valid repo
     owner,reponame = GithubUtils.get_owner_and_repo(repo.repo_url)
     if owner == "" or reponame == "":
-        return Response(response="Invalid repository URL",repo_name="")
+        return Response(response="Invalid repository URL",repo_name="",code=400)
     if not GithubUtils.check_if_repo_exists(owner, reponame):
-        return Response(response="Repository does not exist",repo_name="")
+        return Response(response="Repository does not exist",repo_name="",code=400)
     
     #Clone repo and get content
     repo_content = GithubUtils.get_repo_content(repo.repo_url)
     if repo_content == []:
-        return Response(response="Failed to get repository content",repo_name="")
+        return Response(response="Failed to get repository content",repo_name="",code=400)
 
     logger.info(f"repo {reponame} cloned successfully and got embeddings")
     #Create collection
@@ -46,18 +46,21 @@ async def add_repo(repo: RepoModel):
     #Store repo data points into collection
     llm_model.store_repo_data(collection_name, repo_data)
 
-    return Response(response="Repository added successfully",repo_name=collection_name)
+    return Response(response="Repository added successfully",repo_name=collection_name,code=201)
     
     
 
 @repo_router.post("/{reponame}/query")
 async def query_from_repo(reponame: str, query: Query):
-    return QueryResponse(response=LLMUtils.generate_response_for_query(query.query,get_llm(),reponame))
+    try:
+        return QueryResponse(response=LLMUtils.generate_response_for_query(query.query,get_llm(),reponame),code=200)
+    except Exception as e:
+        return QueryResponse(response=str(e),code=400)
 
 @repo_router.delete("/delete/{repo}")
 async def delete_repo(repo: str):
     llm_model = get_llm()
     if(not llm_model.vector_db.collection_exists(repo)):
-        return Response(response=f"{repo} does not exist",repo_name=repo)
+        return Response(response=f"{repo} does not exist",repo_name=repo,code=400)
     llm_model.vector_db.delete_collection(repo)
-    return Response(response=f"{repo} deleted successfully",repo_name=repo)
+    return Response(response=f"{repo} deleted successfully",repo_name=repo,code=200)

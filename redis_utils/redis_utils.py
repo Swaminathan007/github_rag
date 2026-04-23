@@ -2,7 +2,7 @@ import redis
 import json
 import numpy as np
 from typing import List, Optional
-from config import Config
+from config import get_config
 from qdrantutils import QdrantHandler
 from loggingutils import Logger
 
@@ -25,8 +25,8 @@ class RedisClient:
 
     def __init__(self):
         self.client = redis.Redis(
-            host=Config.REDIS_HOST,
-            port=Config.REDIS_PORT,
+            host=get_config().redis_host,
+            port=get_config().redis_port,
             decode_responses=False
         )
 

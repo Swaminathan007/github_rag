@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from qdrantutils import QdrantHandler
 from redis_utils import RedisClient
-from config import Config
+from config import get_config
 from loggingutils import Logger
 
 
@@ -13,7 +13,7 @@ class BaseModel(ABC):
         self.embedding_model_name = None
         self.embedding_model = None
         self.llm = None
-        self.vector_db = QdrantHandler(Config.QDRANT_URL, Config.QDRANT_API_KEY)
+        self.vector_db = QdrantHandler(get_config().qdrant_url, get_config().qdrant_api_key)
         self.context = None
         self.redis_client = RedisClient.get_redis_client()
 

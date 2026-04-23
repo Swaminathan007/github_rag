@@ -18,7 +18,7 @@ async def get_home_page():
     return engine.render(
         RenderConfig(
             file="pages/Home.tsx",
-            title="Home — py-react-ssr",
+            title="Home",
             props={
                 "message": "Hello from FastAPI + React!",
                 "count": 42,
