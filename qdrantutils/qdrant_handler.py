@@ -4,9 +4,11 @@ from typing import List, Dict, Any
 from utils import HttpConnection
 from qdrant_client.models import PointStruct
 import uuid
+from loggingutils import Logger
 
 class QdrantHandler:
     _embedding_key = "vector"
+    __logger = Logger.get_logger(__name__)
     def __init__(self,url:str,api_key:str):
         self.url = url
         self.api_key = api_key
@@ -31,7 +33,7 @@ class QdrantHandler:
             http_client.get()
             return http_client.response_code == 200
         except Exception as e:
-            print(e)
+            self.__logger.error(e)
             return False
     def get_all_collections(self,limit:int=10,offset:int=0) -> List[str]:
         try:
@@ -39,7 +41,7 @@ class QdrantHandler:
             collections = response.collections[offset:offset+limit]
             return [collection.name for collection in collections]
         except Exception as e:
-            print(e)
+            self.__logger.error(e)
             return []
     
     def collection_exists(self,collection_name: str) -> bool:
@@ -56,6 +58,7 @@ class QdrantHandler:
         try:
             self.client.delete_collection(collection_name=collection_name)
         except Exception as e:
+            self.__logger.error(e)
             raise RuntimeError("Error deleting collection") from e
     @classmethod
     def get_embedding_key(cls):

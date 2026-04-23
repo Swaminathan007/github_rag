@@ -4,7 +4,7 @@ import numpy as np
 from typing import List, Optional
 from config import Config
 from qdrantutils import QdrantHandler
-
+from loggingutils import Logger
 
 def cosine_similarity(a: List[float], b: List[float]) -> float:
     a = np.array(a)
@@ -16,6 +16,7 @@ def cosine_similarity(a: List[float], b: List[float]) -> float:
 
 
 class RedisClient:
+    __logger=Logger.get_logger(__name__)
     _instance = None
 
     # soft limits (app-level)
@@ -40,21 +41,21 @@ class RedisClient:
                 ex=ttl or self._ttl_seconds
             )
         except Exception as e:
-            print(e)
+            self.__logger.error(e)
 
     def get(self, key: str) -> str:
         try:
             value = self.client.get(key)
             return value.decode("utf-8") if value else ""
         except Exception as e:
-            print(e)
+            self.__logger.error(e)
             return ""
 
     def delete(self, key: str):
         try:
             self.client.delete(key)
         except Exception as e:
-            print(e)
+            self.__logger.error(e)
 
     def exists(self, key: str) -> bool:
         return bool(self.client.exists(key))
@@ -64,7 +65,7 @@ class RedisClient:
             keys = self.client.keys()
             return [k.decode("utf-8") for k in keys]
         except Exception as e:
-            print(e)
+            self.__logger.error(e)
             return []
 
 
@@ -78,7 +79,7 @@ class RedisClient:
                 return []
             return json.loads(raw.decode("utf-8"))
         except Exception as e:
-            print(e)
+            self.__logger.error(e)
             return []
 
     def _set_repo_cache(self, repo: str, data: list):
@@ -89,7 +90,7 @@ class RedisClient:
                 ex=self._ttl_seconds  # TTL refresh on write
             )
         except Exception as e:
-            print(e)
+            self.__logger.error(e)
 
     def get_semantic(self,repo: str,query_embedding: List[float],threshold: float = 0.85) -> Optional[str]:
 
@@ -114,7 +115,7 @@ class RedisClient:
             return None
 
         except Exception as e:
-            print(e)
+            self.__logger.error(e)
             return None
 
 
@@ -129,13 +130,13 @@ class RedisClient:
             self._set_repo_cache(repo, cache)
 
         except Exception as e:
-            print(e)
+            self.__logger.error(e)
 
     def clear_repo_cache(self, repo: str):
         try:
             self.client.delete(self._repo_key(repo))
         except Exception as e:
-            print(e)
+            self.__logger.error(e)
 
     @classmethod
     def get_redis_client(cls):

@@ -27,7 +27,7 @@ class OllamaHandler(BaseModel):
             http_client.get()
             return http_client.response_code == 200
         except Exception as e:
-            print(e)
+            self.__logger.error(e)
             return False
     
     @classmethod

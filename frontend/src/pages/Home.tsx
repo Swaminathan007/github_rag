@@ -79,6 +79,11 @@ export default function Home() {
               "Add Repository"
             )}
           </Button>
+          <Button
+            onClick={() => window.location.href = "/repos"}
+          >
+            Go to repo page
+          </Button>
         </Flex>
       </Card>
     </Flex>

@@ -1,9 +1,12 @@
 from redis_utils import RedisClient
-from llm import OllamaHandler,GroqHandler
+from llm import OllamaHandler, GroqHandler
+from loggingutils import Logger
+
+
 class LLMUtils:
-    
     _active_provider = None
     _active_provider_name = None
+    __logger = Logger.get_logger(__name__)
 
     @classmethod
     def get_llm(cls):
@@ -17,16 +20,16 @@ class LLMUtils:
 
         # Return cached provider if unchanged
         if cls._active_provider and cls._active_provider_name == provider_name:
-            print("No change in LLM provider, returning existing provider")
+            cls.__logger.info("No change in LLM provider, returning existing provider")
             return cls._active_provider
 
         # Initialize provider based on value
         if provider_name == OllamaHandler.get_provider_name():
-            print("Initializing Ollama provider")
+            cls.__logger.info("Initializing Ollama provider")
             cls._active_provider = OllamaHandler()
 
         elif provider_name == GroqHandler.get_provider_name():
-            print("Initializing Groq provider")
+            cls.__logger.info("Initializing Groq provider")
             cls._active_provider = GroqHandler()
 
         else:
@@ -35,32 +38,28 @@ class LLMUtils:
         cls._active_provider_name = provider_name
         return cls._active_provider
 
-
-
-    def generate_response_for_query(query_string: str,llm_model,reponame:str) -> str: 
+    @classmethod
+    def generate_response_for_query(
+        cls, query_string: str, llm_model, reponame: str
+    ) -> str:
         redis_client = RedisClient.get_redis_client()
         if not llm_model.vector_db.collection_exists(reponame):
             return "Repository does not exist, please add repo"
 
-
-        #Generate embeddings
+        # Generate embeddings
         query_embedding = llm_model.generate_embeddings(query_string)
 
-        #Check semantic cache
+        # Check semantic cache
         cached_response = redis_client.get_semantic(
-            repo=reponame,
-            query_embedding=query_embedding
+            repo=reponame, query_embedding=query_embedding
         )
 
         if cached_response:
-            print("Response from cache:",cached_response)
             return cached_response
 
         search_results = llm_model.search_repo(reponame, query_string, limit=5)
 
-        context_parts = [
-            res.payload.get("text", "") for res in search_results
-        ]
+        context_parts = [res.payload.get("text", "") for res in search_results]
         context = "\n---\n".join(context_parts)
 
         llm_model.set_context(context)
@@ -71,6 +70,6 @@ class LLMUtils:
             repo=reponame,
             query=query_string,
             embedding=query_embedding,
-            response=llm_response
+            response=llm_response,
         )
         return llm_response

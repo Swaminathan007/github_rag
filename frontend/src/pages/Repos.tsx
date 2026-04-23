@@ -10,7 +10,7 @@ import {
   Button,
   Callout
 } from "@radix-ui/themes";
-import { TrashIcon } from "@radix-ui/react-icons";
+import { PlusIcon, TrashIcon } from "@radix-ui/react-icons";
 import { useEffect, useState } from "react";
 
 export default function Repos() {
@@ -84,8 +84,12 @@ export default function Repos() {
               </Text>
             </Flex>
           ) : repos.length === 0 ? (
-            <Flex direction="column" align="center" py="6" gap="2">
+            <Flex direction="column" align="center" py="6" gap="3">
               <Text color="gray">No repositories found</Text>
+              <Button onClick={() => (window.location.href = "/")}>
+                Add Repository
+                <PlusIcon style={{ marginLeft: 6 }} />
+              </Button>
             </Flex>
           ) : (
             <ScrollArea style={{ maxHeight: 320 }}>

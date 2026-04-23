@@ -3,9 +3,10 @@ from .llm_init import get_llm
 from models import Query,Response,RepoModel,RepoCollectionModel,QueryResponse
 from repoutils import RepoUtils
 from utils import GithubUtils,LLMUtils
+from loggingutils import Logger
 repo_router = APIRouter(prefix="/repo")
 
-
+logger = Logger.get_logger(__name__)
 @repo_router.get("/get_all_repos")
 async def get_all_repos(request: Request):
     limit = int(request.query_params.get("limit", 10))
@@ -32,9 +33,9 @@ async def add_repo(repo: RepoModel):
     #Clone repo and get content
     repo_content = GithubUtils.get_repo_content(repo.repo_url)
     if repo_content == []:
-        return Response(response="Failed to get repository content")
+        return Response(response="Failed to get repository content",repo_name="")
 
-    print(f"repo {reponame} cloned successfully and got embeddings")
+    logger.info(f"repo {reponame} cloned successfully and got embeddings")
     #Create collection
     collection_name = f"{owner}_{reponame}".lower().replace("-", "_").replace(".", "_") 
     llm_model.vector_db.create_collection(collection_name, 768)

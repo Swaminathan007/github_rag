@@ -27,7 +27,7 @@ class GroqHandler(BaseModel):
             self.llm.invoke("Hello")
             return True
         except Exception as e:
-            print(e)
+            self.__logger.error(e)
             return False
     
     @classmethod
