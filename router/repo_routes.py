@@ -2,7 +2,7 @@ from fastapi import APIRouter,Request
 from .llm_init import get_llm
 from models import Query,Response,RepoModel,RepoCollectionModel,QueryResponse
 from repoutils import RepoUtils
-from utils import GithubUtils
+from utils import GithubUtils,LLMUtils
 repo_router = APIRouter(prefix="/repo")
 
 
@@ -51,26 +51,7 @@ async def add_repo(repo: RepoModel):
 
 @repo_router.post("/{reponame}/query")
 async def query_from_repo(reponame: str, query: Query):
-    llm_model = get_llm()
-    if(not llm_model.vector_db.collection_exists(reponame)):
-        return QueryResponse(response="Repository does not exist,please add repo")
-    
-    #Get query string
-    query_string = query.query
-
-    #Search repo
-    search_results = llm_model.search_repo(reponame, query_string, limit=5)
-    context_parts = []
-    for res in search_results:
-        context_parts.append(res.payload.get("text", ""))
-    context = "\n---\n".join(context_parts)
-
-    #Set context
-    llm_model.set_context(context)
-    
-    #Generate response
-    llm_response = llm_model.generate_response(query_string)
-    return QueryResponse(response=llm_response)
+    return QueryResponse(response=LLMUtils.generate_response_for_query(query.query,get_llm(),reponame))
 
 @repo_router.delete("/delete/{repo}")
 async def delete_repo(repo: str):

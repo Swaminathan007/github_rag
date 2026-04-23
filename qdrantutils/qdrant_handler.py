@@ -6,6 +6,7 @@ from qdrant_client.models import PointStruct
 import uuid
 
 class QdrantHandler:
+    _embedding_key = "vector"
     def __init__(self,url:str,api_key:str):
         self.url = url
         self.api_key = api_key
@@ -13,13 +14,10 @@ class QdrantHandler:
         
     def create_collection(self, collection_name: str, vector_size: int):
         if not self.client.collection_exists(collection_name):
-            self.client.create_collection(
-                collection_name=collection_name,
-                vectors_config=VectorParams(size=vector_size, distance=Distance.COSINE)
-            )
+            self.client.create_collection(collection_name=collection_name,vectors_config=VectorParams(size=vector_size, distance=Distance.COSINE))
     
     def upsert(self, collection_name: str, points: List[Dict[str, Any]]):
-        uuid_points = [PointStruct(id=str(uuid.uuid5(uuid.NAMESPACE_DNS, str(point["id"]))),vector=point["vector"],payload=point["payload"]) for point in points]
+        uuid_points = [PointStruct(id=str(uuid.uuid5(uuid.NAMESPACE_DNS, str(point["id"]))),vector=point[QdrantHandler.get_embedding_key()],payload=point["payload"]) for point in points]
         self.client.upsert(collection_name=collection_name,points=uuid_points)
         
     def search(self, collection_name: str, query_vector: List[float], limit: int = 5):
@@ -59,3 +57,6 @@ class QdrantHandler:
             self.client.delete_collection(collection_name=collection_name)
         except Exception as e:
             raise RuntimeError("Error deleting collection") from e
+    @classmethod
+    def get_embedding_key(cls):
+        return cls._embedding_key
