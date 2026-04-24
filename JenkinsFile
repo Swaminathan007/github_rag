@@ -1,0 +1,42 @@
+pipeline {
+    agent any
+    parameters {
+        string(name: 'BRANCH', defaultValue: 'main', description: 'Git branch to build')
+    }
+    environment {
+     BRANCH_NAME = "${params.BRANCH}"
+     COMMIT=sh(script: """git rev-parse --short HEAD""", returnStdout:true)
+    }
+    stages {
+        stage('Checkout & Compile Python') {
+            steps {
+                sh '''
+                    rm -rf .venv/
+                    uv venv --python 3.13
+                    .venv/bin/python3 -m compileall app/
+                '''
+            }
+        }
+        stage('Install dependencies'){
+            steps{
+                sh '''
+                    uv pip install -r requirements.txt
+                '''
+            }
+        }
+        stage('Lint'){
+            steps{
+                sh '''
+                    .venv/bin/ruff check .
+                '''
+            }
+        }
+        stage('Security check') {
+            steps {
+                sh '''
+                    .venv/bin/pip-audit
+                '''
+            }
+        }
+    }
+}
