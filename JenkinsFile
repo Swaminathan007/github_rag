@@ -34,7 +34,7 @@ pipeline {
         stage('Security check') {
             steps {
                 sh '''
-                    .venv/bin/pip-audit
+                    .venv/bin/pyscan
                 '''
             }
         }
