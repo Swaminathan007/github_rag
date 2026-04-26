@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
-from reactrender import ReactSSR,Config,RenderConfig
+from fastapi.concurrency import run_in_threadpool
+from reactrender import ReactSSR, Config, RenderConfig
 
 ui_router = APIRouter(prefix="")
 
@@ -9,13 +10,15 @@ engine = ReactSSR(
         frontend_dir="./frontend/src",
         asset_route="/assets",
         production=True,
-        tailwind_css_path= "@radix-ui/themes/styles.css"
+        tailwind_css_path="@radix-ui/themes/styles.css"
     )
 )
 
+
 @ui_router.get("/", response_class=HTMLResponse)
 async def get_home_page():
-    return engine.render(
+    return await run_in_threadpool(
+        engine.render,
         RenderConfig(
             file="pages/Home.tsx",
             title="Home",
@@ -29,9 +32,12 @@ async def get_home_page():
             },
         )
     )
-@ui_router.get("/repos",response_class=HTMLResponse)
+
+
+@ui_router.get("/repos", response_class=HTMLResponse)
 async def get_repos_page():
-    return engine.render(
+    return await run_in_threadpool(
+        engine.render,
         RenderConfig(
             file="pages/Repos.tsx",
             title="Repos",
@@ -44,18 +50,36 @@ async def get_repos_page():
             },
         )
     )
-@ui_router.get("/chat/{repo_name}",response_class=HTMLResponse)
+
+
+@ui_router.get("/chat/{repo_name}", response_class=HTMLResponse)
 async def get_chat_page(repo_name: str):
-    return engine.render(
+    return await run_in_threadpool(
+        engine.render,
         RenderConfig(
             file="pages/Chat.tsx",
-            title="Chat",
+            title=f"Chat {repo_name}",
             props={
                 "repo_name": repo_name,
             },
             meta_tags={
                 "description": "Repo chat",
-                "og:title": "GITHUB RAG",
+                "og:title": f"Chat {repo_name}",
+            },
+        )
+    )
+
+@ui_router.get("/settings", response_class=HTMLResponse)
+async def get_settings_page():
+    return await run_in_threadpool(
+        engine.render,
+        RenderConfig(
+            file="pages/Settings.tsx",
+            title="Settings",
+            props={},
+            meta_tags={
+                "description": "Upload repo and chat with it",
+                "og:title": "Github RAG settings",
             },
         )
     )
