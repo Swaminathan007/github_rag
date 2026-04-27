@@ -8,8 +8,10 @@ import {
   Button,
   Spinner,
   Card,
-  Callout
+  Callout,
+  IconButton
 } from "@radix-ui/themes";
+import { GearIcon } from "@radix-ui/react-icons";
 
 export default function Home() {
   const [repoUrl, setRepoUrl] = useState("");
@@ -92,7 +94,14 @@ export default function Home() {
           <Button
             onClick={() => window.location.href = "/repos"}
           >
-            Go to repo page
+            View Repositories
+          </Button>
+          <Button
+            onClick={() => window.location.href = "/settings"}
+          >
+            Settings <IconButton>
+              <GearIcon />
+            </IconButton>
           </Button>
         </Flex>
       </Card>

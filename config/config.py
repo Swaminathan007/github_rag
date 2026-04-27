@@ -22,6 +22,7 @@ class Config:
     rustfs_secret: str
     rustfs_bucket: str
     rustfs_port: int
+    rustfs_host: str
 
     @classmethod
     def load(cls) -> "Config":
@@ -39,6 +40,7 @@ class Config:
             rustfs_secret=cls._require("RUSTFS_SECRET"),
             rustfs_bucket=cls._require("RUSTFS_BUCKET"),
             rustfs_port=int(cls._require("RUSTFS_PORT")),
+            rustfs_host=cls._require("RUSTFS_HOST"),
         )
 
         config._post_init()
