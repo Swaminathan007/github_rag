@@ -4,10 +4,10 @@ class RepoUtils:
     def chunk_text(text: str):
         splitter = RecursiveCharacterTextSplitter(
             chunk_size=800,     
-            chunk_overlap=100
+            chunk_overlap=200
         )
         return splitter.split_text(text)
-    def prepare_repo_data(repo_content, repo_url):
+    def get_repo_vectors(repo_content, repo_url) -> list:
         repo_data = []
 
         for i, item in enumerate(repo_content):

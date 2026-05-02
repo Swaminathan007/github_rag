@@ -5,7 +5,7 @@ from models import Query, Response, RepoModel, RepoCollectionModel, QueryRespons
 from repoutils import RepoUtils
 from utils import GithubUtils, LLMUtils
 from loggingutils import Logger
-
+from fastapi import status
 repo_router = APIRouter(prefix="/repo")
 logger = Logger.get_logger(__name__)
 
@@ -30,44 +30,34 @@ async def get_repo(reponame: str):
 
 @repo_router.post("/add")
 async def add_repo(repo: RepoModel):
-    llm_model = get_llm()
-
-    owner, reponame = GithubUtils.get_owner_and_repo(repo.repo_url)
-    if owner == "" or reponame == "":
-        return Response(response="Invalid repository URL", repo_name="", code=400)
-
-    repo_exists = await run_in_threadpool(GithubUtils.check_if_repo_exists, owner, reponame)
-    if not repo_exists:
-        return Response(response="Repository does not exist", repo_name="", code=400)
-
+    llm_model = get_llm()    
     # Heavy I/O — offload to thread
-    repo_content = await run_in_threadpool(GithubUtils.get_repo_content, repo.repo_url)
-    if repo_content == []:
-        return Response(response="Failed to get repository content", repo_name="", code=400)
+    repo_content,cmd_status = await run_in_threadpool(GithubUtils.get_repo_content, repo.repo_url)
+    
+    if cmd_status == GithubUtils.FAILED:
+        return Response(response="Failed to get repository content",repo_name="",code=400)
 
-    logger.info(f"repo {reponame} cloned successfully and got embeddings")
+    if cmd_status == GithubUtils.NO_CHANGE:
+        return Response(response="No changes in repository in the specified branch",repo_name=repo.repo_url,code=204)
+    
 
-    collection_name = (
-        f"{owner}_{reponame}".lower().replace("-", "_").replace(".", "_")
-    )
+    try:
+        owner,repo_name = GithubUtils.get_owner_and_repo(repo.repo_url)
+        collection_name = GithubUtils.get_repo_collection_name(repo_name,owner,repo.branch)
+        await run_in_threadpool(llm_model.vector_db.create_collection, collection_name, 768)
 
-    await run_in_threadpool(llm_model.vector_db.create_collection, collection_name, 768)
-
-    repo_data = RepoUtils.prepare_repo_data(repo_content, repo.repo_url)
-
-    # Embedding + storing — the most expensive step
-    await run_in_threadpool(llm_model.store_repo_data, collection_name, repo_data)
-
-    return Response(response="Repository added successfully", repo_name=collection_name, code=201)
-
+        repo_data = RepoUtils.get_repo_vectors(repo_content, repo.repo_url)
+        await run_in_threadpool(llm_model.store_repo_data, collection_name, repo_data)
+        return Response(response="Repository added successfully", repo_name=repo.repo_url, code=201)
+    
+    except Exception as e:        
+        return Response(response=f"Error while updating or creating repo collection: {e}",repo_name=repo.repo_url,code=500)
 
 @repo_router.post("/{reponame}/query")
 async def query_from_repo(reponame: str, query: Query):
     try:
         # ✅ Ollama inference runs in a thread — won't block other requests
-        response = await run_in_threadpool(
-            LLMUtils.generate_response_for_query, query.query, get_llm(), reponame
-        )
+        response = await run_in_threadpool(LLMUtils.generate_response_for_query, query.query, get_llm(), reponame)
         return QueryResponse(response=response, code=200)
     except Exception as e:
         return QueryResponse(response=str(e), code=400)

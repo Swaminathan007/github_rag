@@ -17,6 +17,7 @@ export default function Home() {
   const [repoUrl, setRepoUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
+  const [branch, setBranch] = useState("");
 
   const handleSubmit = async () => {
     if (!repoUrl.trim()) return;
@@ -26,12 +27,13 @@ export default function Home() {
       const res = await fetch("/api/v1/repo/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ repo_url: repoUrl }),
+        body: JSON.stringify({ repo_url: repoUrl,branch: branch }),
       });
 
       const data = await res.json();
       
       setRepoUrl("");
+      setBranch("");
       if(data.code != 201){
         setMessage(data.response);
         return;
@@ -72,6 +74,20 @@ export default function Home() {
               placeholder="https://github.com/user/repo"
               value={repoUrl}
               onChange={(e) => setRepoUrl(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSubmit();
+              }}
+            />
+          </Flex>
+
+          <Flex direction="column" gap="2">
+            <Text size="1" weight="bold">
+              Branch
+            </Text>
+            <TextField.Root
+              placeholder="main"
+              value={branch}
+              onChange={(e) => setBranch(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleSubmit();
               }}
