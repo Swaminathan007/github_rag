@@ -204,11 +204,11 @@ github_rag/
 ├── models/                # Pydantic request/response models
 ├── qdrantutils/           # Qdrant vector DB client wrapper
 ├── redis_utils/           # Redis client wrapper
-├── repoutils/             # Repo data chunking & preparation
+├── repoutils/             # Repo data chunking & preparation,github repo and cloning
 ├── router/
 │   └── repo_routes.py     # FastAPI route definitions
 ├── utils/
-│   └── github_utils.py    # GitHub repo cloning & traversal
+│   └── github_utils.py    # GitHub repo cloning & traversal (deprecated)
 └── frontend/
     └── src/
         └── pages/

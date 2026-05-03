@@ -25,7 +25,7 @@ def get_redis(key: str):
 def get_all_redis():
     redis_client = RedisClient.get_redis_client()
     llm_provider = redis_client.get("llm_provider")
-    if(llm_provider == None):
+    if(llm_provider is None):
         return {"llm_provider":None}
     elif llm_provider == "ollama":
         return {"llm_provider":"ollama","ollama_model":redis_client.get("ollama_model")}

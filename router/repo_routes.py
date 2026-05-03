@@ -5,7 +5,8 @@ from models import Query, Response, RepoModel, RepoCollectionModel, QueryRespons
 from repoutils import RepoUtils
 from utils import GithubUtils, LLMUtils
 from loggingutils import Logger
-from fastapi import status
+
+from repoutils import GithubRepo,RepoStatusEnum
 repo_router = APIRouter(prefix="/repo")
 logger = Logger.get_logger(__name__)
 
@@ -32,22 +33,29 @@ async def get_repo(reponame: str):
 async def add_repo(repo: RepoModel):
     llm_model = get_llm()    
     # Heavy I/O — offload to thread
-    repo_content,cmd_status = await run_in_threadpool(GithubUtils.get_repo_content, repo.repo_url)
+    repository = None
+    if(repo.repo_url.startswith("https://github.com/")):
+        repository = GithubRepo(repo.repo_url,repo.branch)
+    else:
+        return Response(response="Failed to get repository",repo_name="",code=400)
     
-    if cmd_status == GithubUtils.FAILED:
-        return Response(response="Failed to get repository content",repo_name="",code=400)
-
-    if cmd_status == GithubUtils.NO_CHANGE:
-        return Response(response="No changes in repository in the specified branch",repo_name=repo.repo_url,code=204)
+    if(not repository.check_if_repo_exists()):
+        return Response(response="Repo does not exists",repo_name="",code=400)
     
-
+    collection_name = repository._get_repo_collection_path(repo.branch)
+    cmd_status = repository.clone_repo()
+    if cmd_status == RepoStatusEnum.FAILED:
+            return Response(response=cmd_status.get_formatted_status(),repo_name="",code=400)
+    if cmd_status == RepoStatusEnum.EXISTS and llm_model.vector_db.collection_exists(collection_name):
+        return Response(response=cmd_status.get_formatted_status(),repo_name="",code=400)
+    
     try:
-        owner,repo_name = GithubUtils.get_owner_and_repo(repo.repo_url)
-        collection_name = GithubUtils.get_repo_collection_name(repo_name,owner,repo.branch)
         await run_in_threadpool(llm_model.vector_db.create_collection, collection_name, 768)
 
-        repo_data = RepoUtils.get_repo_vectors(repo_content, repo.repo_url)
-        await run_in_threadpool(llm_model.store_repo_data, collection_name, repo_data)
+        repository.generate_repo_files()
+        repository.generate_file_vectors()
+
+        await run_in_threadpool(llm_model.store_repo_data, collection_name, repository.vectors)
         return Response(response="Repository added successfully", repo_name=repo.repo_url, code=201)
     
     except Exception as e:        
